@@ -1,5 +1,6 @@
-import { Router } from 'https://deno.land/x/oak/mod.ts';
-
+import { Router } from "https://deno.land/x/oak/mod.ts";
+import TodoEntity from "../entities/TodoEntity.ts";
+import { v4 } from "npm:uuid";
 const router = new Router();
 
 interface Todo {
@@ -9,36 +10,34 @@ interface Todo {
 
 let todos: Todo[] = [];
 
-router.get('/todos', (ctx) => {
-  ctx.response.body = { todos: todos };
+router.get("/todos", async (ctx) => {
+  const toDos = await TodoEntity.find();
+  ctx.response.body = { todos: toDos };
 });
 
-router.post('/todos', async (ctx) => {
-  const data = await ctx.request.body();
-  const newTodo: Todo = {
-    id: new Date().toISOString(),
-    text: data.value.text,
-  };
+router.post("/todos", async (ctx) => {
+  const data = await ctx.request.body().value;
+  const newTodo = new TodoEntity({ id: v4(), text: data.text });
 
-  todos.push(newTodo);
+  const response = await newTodo.save();
 
-  ctx.response.body = { message: 'Created todo!', todo: newTodo };
+  ctx.response.body = { message: "Created todo!", todo: response };
 });
 
-router.put('/todos/:todoId', async (ctx) => {
+router.put("/todos/:todoId", async (ctx) => {
   const tid = ctx.params.todoId;
-  const data = await ctx.request.body();
+  const data = await ctx.request.body().value;
   const todoIndex = todos.findIndex((todo) => {
     return todo.id === tid;
   });
-  todos[todoIndex] = { id: todos[todoIndex].id, text: data.value.text };
-  ctx.response.body = { message: 'Updated todo' };
+  todos[todoIndex] = { id: todos[todoIndex].id, text: data.text };
+  ctx.response.body = { message: "Updated todo" };
 });
 
-router.delete('/todos/:todoId', (ctx) => {
+router.delete("/todos/:todoId", (ctx) => {
   const tid = ctx.params.todoId;
   todos = todos.filter((todo) => todo.id !== tid);
-  ctx.response.body = { message: 'Deleted todo' };
+  ctx.response.body = { message: "Deleted todo" };
 });
 
 export default router;
