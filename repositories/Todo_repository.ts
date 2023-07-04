@@ -8,4 +8,5 @@ export const queryAllTodos = async () => {
 export const addNewToDoMutation = async (addTodoDTO: AddTodoDTO) => {
   const newTodo = new TodoEntity({ id: v4(), text: addTodoDTO.text });
   const response = await newTodo.save();
+  return response;
 };
