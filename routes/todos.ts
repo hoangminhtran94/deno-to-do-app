@@ -1,6 +1,5 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
-import TodoEntity from "../entities/TodoEntity.ts";
-import { v4 } from "npm:uuid";
+import { getTodos, addTodo } from "../controllers/todo_services.ts";
 const router = new Router();
 
 interface Todo {
@@ -10,19 +9,9 @@ interface Todo {
 
 let todos: Todo[] = [];
 
-router.get("/todos", async (ctx) => {
-  const toDos = await TodoEntity.find();
-  ctx.response.body = { todos: toDos };
-});
+router.get("/todos", getTodos);
 
-router.post("/todos", async (ctx) => {
-  const data = await ctx.request.body().value;
-  const newTodo = new TodoEntity({ id: v4(), text: data.text });
-
-  const response = await newTodo.save();
-
-  ctx.response.body = { message: "Created todo!", todo: response };
-});
+router.post("/todos", addTodo);
 
 router.put("/todos/:todoId", async (ctx) => {
   const tid = ctx.params.todoId;
